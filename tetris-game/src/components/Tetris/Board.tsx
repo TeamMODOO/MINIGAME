@@ -5,26 +5,34 @@ interface CellProps {
 }
 
 const Cell = ({ value }: CellProps) => (
-    <div
-      className={`w-6 h-6 border`}
-      style={{
-        backgroundColor: value ? 'blue' : 'gray', // 기본 배경색
-      }}
-    />
-  );  
+  <div
+    style={{
+      width: '24px', // 고정 크기
+      height: '24px',
+      backgroundColor: value ? 'blue' : 'gray', // 값에 따른 배경색
+      border: '1px solid black', // 경계선
+    }}
+  />
+);
 
 interface BoardProps {
   board: number[][];
 }
-
 const Board = ({ board }: BoardProps) => {
-    console.log("Board received:", board);
-    return (
-      <div className="grid gap-0" style={{ gridTemplateColumns: `repeat(${board[0].length}, 1fr)` }}>
-        {board.flat().map((cell, idx) => (
-          <Cell key={idx} value={cell} />
-        ))}
-      </div>
-    );
-  };
+  console.log('Rendering board:', board); // 디버깅 출력
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${board[0].length}, 24px)`, // 고정 크기
+        gap: '0px',
+      }}
+    >
+      {board.flat().map((cell, idx) => (
+        <Cell key={idx} value={cell} />
+      ))}
+    </div>
+  );
+};
+
 export default Board;
