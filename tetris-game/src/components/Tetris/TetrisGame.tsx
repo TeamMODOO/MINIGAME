@@ -67,7 +67,13 @@ const TetrisGame = () => {
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []); // 이벤트 리스너는 한 번만 등록
+  }, []);
+
+  // 초기 렌더링 시 블록을 보드에 병합
+  useEffect(() => {
+    const initialBoard = mergePieceToBoard(currentPiece, positionRef.current.x, positionRef.current.y);
+    setBoard(initialBoard);
+  }, []); // 빈 배열로 설정해 컴포넌트 초기화 시 실행
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-800">
