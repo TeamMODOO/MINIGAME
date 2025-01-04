@@ -19,7 +19,7 @@ interface BoardProps {
   board: number[][];
 }
 const Board = ({ board }: BoardProps) => {
-  console.log('Rendering board:', board); // 디버깅 출력
+  // console.log('Rendering board:', board); // 디버깅 출력
   return (
     <div
       style={{
