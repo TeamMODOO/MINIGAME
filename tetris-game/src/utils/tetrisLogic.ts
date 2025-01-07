@@ -11,6 +11,7 @@ export class Tetris {
   movingBlock?: { type: string; direction: number; n: number; m: number };
   nextBlocks: string[];
   board: string[][];
+  gameOver: boolean;
 
   constructor() {
     this.N = 20; // 보드 세로 길이
@@ -20,6 +21,7 @@ export class Tetris {
     this.duration = 1000;
     this.nextBlocks = [];
     this.board = this.createEmptyBoard();
+    this.gameOver = false; // 게임 종료 상태
   }
 
   // 빈 보드 생성
@@ -54,22 +56,26 @@ export class Tetris {
 
   // 새 블록 생성
   makeNewBlock(): void {
-    if (this.nextBlocks.length < 2) {
+    if (!this.nextBlocks.length) {
       this.makeNextBlock();
     }
-
+  
     const next = this.nextBlocks.shift();
     if (!next) {
       throw new Error('Failed to create new block.');
     }
-
+  
     this.movingBlock = { type: next, direction: 0, n: 0, m: Math.floor(this.M / 2) - 2 };
+  
     if (this.isColliding(this.movingBlock.n, this.movingBlock.m, this.movingBlock.direction)) {
-      throw new Error('Game Over');
+      this.gameOver = true; // 게임 종료 상태 업데이트
+      return; // 새 블록을 만들지 않고 종료
     }
+  
     this.renderBlock();
     this.makeNextBlock(); // 다음 블록 큐에 새로운 블록 추가
   }
+  
 
   // 충돌 감지
   isColliding(n: number, m: number, direction: number): boolean {
