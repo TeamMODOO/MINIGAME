@@ -28,6 +28,34 @@ export default function Home() {
         case 'ArrowDown':
           game.moveBlock('n', 1); // 아래로 빠르게 이동
           break;
+        case 'ArrowUp':
+          game.moveBlock('rotate', 1); // 블록 회전
+          break;
+        case 'w':
+          game.moveBlock('rotate', 1); // 블록 회전
+          break;
+        case 'W':
+          game.moveBlock('rotate', 1); // 블록 회전
+          break;
+        case 's':
+          game.moveBlock('n', 1); // 아래로 이동
+          break;
+        case 'S':
+          game.moveBlock('n', 1); // 아래로 이동
+          break;
+        case 'a':
+          game.moveBlock('m', -1); // 왼쪽 이동
+          break;
+        case 'A':
+          game.moveBlock('m', -1); // 왼쪽 이동
+          break;
+        case 'd':
+          game.moveBlock('m', 1); // 오른쪽 이동
+          break;
+        case 'D':
+          game.moveBlock('m', 1); // 오른쪽 이동
+          break;
+        
       }
       setBoard(game.getBoard()); // 이동 후 보드 상태 업데이트
     };

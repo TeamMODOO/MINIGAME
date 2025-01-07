@@ -164,20 +164,33 @@ export class Tetris {
   }
 
   // 블록 이동
-  moveBlock(where: 'n' | 'm', amount: number): void {
+  moveBlock(where: 'n' | 'm' | 'rotate', amount: number): void {
     if (!this.movingBlock) return;
-
+  
     const nextPosition = { ...this.movingBlock };
-    nextPosition[where] += amount;
-
+  
+    if (where === 'rotate') {
+      nextPosition.direction = (this.movingBlock.direction + amount + 4) % 4; // 방향을 0~3 사이로 유지
+    } else {
+      nextPosition[where] += amount;
+    }
+  
+    // 충돌 감지
     if (this.isColliding(nextPosition.n, nextPosition.m, nextPosition.direction)) {
       if (where === 'n') {
         this.finishBlock(); // 아래로 이동 중 충돌 시 블록 고정
       }
       return;
     }
-
-    this.movingBlock[where] += amount;
+  
+    // 이동 허용
+    if (where === 'rotate') {
+      this.movingBlock.direction = nextPosition.direction; // 회전 적용
+    } else {
+      this.movingBlock[where] += amount; // 이동 적용
+    }
+  
     this.renderBlock();
   }
+  
 }
