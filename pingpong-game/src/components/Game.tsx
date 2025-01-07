@@ -25,8 +25,8 @@ export default function Game() {
     let aiY = canvas.height / 2 - paddleHeight / 2
     let ballX = canvas.width / 2
     let ballY = canvas.height / 2
-    let ballSpeedX = 4
-    let ballSpeedY = 4
+    let ballSpeedX = 10
+    let ballSpeedY = 10
 
     const resetBall = () => {
       ballX = canvas.width / 2
