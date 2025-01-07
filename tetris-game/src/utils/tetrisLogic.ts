@@ -8,7 +8,6 @@ export class Tetris {
   score: number;
   level: number;
   duration: number;
-  blockInfo?: { type: string; direction: number; n: number; m: number };
   movingBlock?: { type: string; direction: number; n: number; m: number };
   nextBlocks: string[];
   board: string[][];
@@ -23,34 +22,14 @@ export class Tetris {
     this.board = this.createEmptyBoard();
   }
 
-// 보드 데이터를 반환
- getBoard(): string[][] {
-    return this.board.map(row => [...row]); // 보드의 복사본 반환   
-    }
-
-moveBlock(where: 'n' | 'm', amount: number): void {
-    if (!this.movingBlock) return;
-  
-    const nextPosition = { ...this.movingBlock };
-    nextPosition[where] += amount;
-  
-    // 충돌 감지
-    if (this.isColliding(nextPosition.n, nextPosition.m, nextPosition.direction)) {
-      if (where === 'n') {
-        this.finishBlock(); // 세로 방향에서 충돌하면 블록 고정
-      }
-      return;
-    }
-  
-    // 이동 허용
-    this.movingBlock[where] += amount;
-    this.renderBlock();
-  }
-      
-
   // 빈 보드 생성
   createEmptyBoard(): string[][] {
     return Array.from({ length: this.N }, () => Array(this.M).fill(''));
+  }
+
+  // 보드 데이터를 반환
+  getBoard(): string[][] {
+    return this.board.map(row => [...row]); // 보드의 복사본 반환
   }
 
   // 게임 초기화
@@ -66,7 +45,7 @@ moveBlock(where: 'n' | 'm', amount: number): void {
     this.makeNewBlock();
   }
 
-  // 다음 블록 생성
+  // 다음 블록 생성 (추가된 함수)
   makeNextBlock(): void {
     const blockArray = Object.keys(blocks);
     const randomIndex = Math.floor(Math.random() * blockArray.length);
@@ -75,7 +54,7 @@ moveBlock(where: 'n' | 'm', amount: number): void {
 
   // 새 블록 생성
   makeNewBlock(): void {
-    if (!this.nextBlocks.length) {
+    if (this.nextBlocks.length < 2) {
       this.makeNextBlock();
     }
 
@@ -84,24 +63,20 @@ moveBlock(where: 'n' | 'm', amount: number): void {
       throw new Error('Failed to create new block.');
     }
 
-    this.blockInfo = { type: next, direction: 0, n: 0, m: Math.floor(this.M / 2) - 2 };
-    this.movingBlock = { ...this.blockInfo };
-
+    this.movingBlock = { type: next, direction: 0, n: 0, m: Math.floor(this.M / 2) - 2 };
+    if (this.isColliding(this.movingBlock.n, this.movingBlock.m, this.movingBlock.direction)) {
+      throw new Error('Game Over');
+    }
     this.renderBlock();
+    this.makeNextBlock(); // 다음 블록 큐에 새로운 블록 추가
   }
 
-  // 블록 렌더링
-  renderBlock(): void {
-    if (!this.movingBlock) return;
-  
-    const { type, direction, n, m } = this.movingBlock;
-  
-    // 기존 active 블록 제거
-    this.clearMovingBlock();
-  
-    const isColliding = blocks[type][direction].some(([x, y]) => {
-      const newX = n + x;
-      const newY = m + y;
+  // 충돌 감지
+  isColliding(n: number, m: number, direction: number): boolean {
+    const type = this.movingBlock?.type || '';
+    return blocks[type][direction].some(([x, y]) => {
+      const newX = n + y; // y와 x를 바꿔야 할 수 있음
+      const newY = m + x;
       return (
         newX < 0 ||
         newX >= this.N ||
@@ -110,25 +85,33 @@ moveBlock(where: 'n' | 'm', amount: number): void {
         this.board[newX][newY] === 'fixed'
       );
     });
-  
+  }
+
+  // 블록 렌더링
+  renderBlock(): void {
+    if (!this.movingBlock) return;
+
+    const { type, direction, n, m } = this.movingBlock;
+
+    // 기존 active 블록 제거
+    this.clearMovingBlock();
+
+    const isColliding = this.isColliding(n, m, direction);
+
     if (isColliding) {
-      if (this.blockInfo) {
-        this.movingBlock = { ...this.blockInfo }; // 충돌 시 원래 위치로 복원
-      }
+      this.finishBlock(); // 충돌 시 현재 블록 고정
       return;
     }
-  
+
     // 이동 중인 블록 렌더링
     blocks[type][direction].forEach(([x, y]) => {
-      const newX = n + x;
-      const newY = m + y;
+      const newX = n + y; // y와 x를 바꿔야 할 수 있음
+      const newY = m + x;
       if (this.board[newX]) {
         this.board[newX][newY] = 'active';
       }
     });
   }
-  
-  
 
   // 기존 블록 제거
   clearMovingBlock(): void {
@@ -136,54 +119,59 @@ moveBlock(where: 'n' | 'm', amount: number): void {
       row.map(cell => (cell === 'active' ? '' : cell)) // active만 제거
     );
   }
-  
 
+  // 블록 고정
   finishBlock(): void {
     if (!this.movingBlock) return;
-  
+
     const { type, direction, n, m } = this.movingBlock;
-  
+
     // 현재 블록을 고정 상태로 설정
     blocks[type][direction].forEach(([x, y]) => {
-      const newX = n + x;
-      const newY = m + y;
+      const newX = n + y; // y와 x를 바꿔야 할 수 있음
+      const newY = m + x;
       if (this.board[newX]) {
         this.board[newX][newY] = 'fixed'; // 고정 상태로 설정
       }
     });
-  
+
     this.checkFullLines(); // 가득 찬 줄 제거
     this.makeNewBlock(); // 새로운 블록 생성
   }
-  
-  
-  
-  isColliding(n: number, m: number, direction: number): boolean {
-    return blocks[this.movingBlock?.type || ''][direction].some(([x, y]) => {
-      const newX = n + x;
-      const newY = m + y;
-      return (
-        newX < 0 ||
-        newX >= this.N ||
-        newY < 0 ||
-        newY >= this.M ||
-        this.board[newX][newY] === 'fixed'
-      );
-    });
-  }
-  
-// 완전히 채워진 줄을 감지하고 제거
+
+  // 완전히 채워진 줄 제거
   checkFullLines(): void {
-    const newBoard = this.board.filter(row => row.some(cell => cell !== 'fixed') === false);
-  
-    const clearedLines = this.N - newBoard.length; // 삭제된 줄의 수
-    for (let i = 0; i < clearedLines; i++) {
-      newBoard.unshift(Array(this.M).fill('')); // 빈 줄 추가
-    }
-  
-    this.board = newBoard;
-    this.score += clearedLines * 10; // 점수 추가
+    const linesToRemove: number[] = [];
+
+    this.board.forEach((row, index) => {
+      if (row.every(cell => cell === 'fixed')) {
+        linesToRemove.push(index);
+      }
+    });
+
+    linesToRemove.forEach(lineIndex => {
+      this.board.splice(lineIndex, 1);
+      this.board.unshift(Array(this.M).fill(''));
+    });
+
+    this.score += linesToRemove.length * 10; // 점수 추가
   }
-  
-  
+
+  // 블록 이동
+  moveBlock(where: 'n' | 'm', amount: number): void {
+    if (!this.movingBlock) return;
+
+    const nextPosition = { ...this.movingBlock };
+    nextPosition[where] += amount;
+
+    if (this.isColliding(nextPosition.n, nextPosition.m, nextPosition.direction)) {
+      if (where === 'n') {
+        this.finishBlock(); // 아래로 이동 중 충돌 시 블록 고정
+      }
+      return;
+    }
+
+    this.movingBlock[where] += amount;
+    this.renderBlock();
+  }
 }
