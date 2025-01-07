@@ -10,6 +10,8 @@ export default function Home() {
   const [board, setBoard] = useState<string[][]>([]);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [level, setLevel] = useState(1); // 레벨 초기값 1
+  const [linesCleared, setLinesCleared] = useState(0); // 삭제된 라인 수 초기값 0
 
   useEffect(() => {
     game.init();
@@ -58,6 +60,9 @@ export default function Home() {
         
       }
       setBoard(game.getBoard()); // 이동 후 보드 상태 업데이트
+      setScore(game.score); // 점수 업데이트
+      setLevel(game.level); // 레벨 업데이트
+      setLinesCleared(game.linesCleared); // 삭제된 라인 수 업데이트
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -69,9 +74,11 @@ export default function Home() {
         return;
       }
 
-      game.moveBlock('n', 1); // 블록 아래로 이동
+      game.moveBlock('n', 1);
       setBoard(game.getBoard());
       setScore(game.score);
+      setLevel(game.level);
+      setLinesCleared(game.linesCleared);
     }, game.duration);
 
     return () => {
@@ -80,23 +87,10 @@ export default function Home() {
     };
   }, [game]);
 
-  const restartGame = () => {
-    const newGame = new Tetris();
-    newGame.init();
-    setGameOver(false);
-    setBoard(newGame.getBoard());
-    setScore(0);
-  };
-
   return (
     <div>
-      {gameOver && (
-        <div>
-          <p>Game Over</p>
-          <button onClick={restartGame}>Restart</button>
-        </div>
-      )}
-      <Score score={score} level={game.level} />
+      {gameOver && <p>Game Over</p>}
+      <Score score={score} level={level} linesCleared={linesCleared} />
       <Board board={board} />
     </div>
   );
